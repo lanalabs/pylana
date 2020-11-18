@@ -10,6 +10,7 @@ from typing import List
 
 from requests import Response
 
+from pylana.decorators import warn_for_interface_deprecation
 from pylana.resources import ResourceAPI
 
 
@@ -190,6 +191,7 @@ class ShinyDashboardAPI(ResourceAPI):
         return self.patch(f"/api/shiny-dashboards/{shiny_dashboard_id}/sharing",
                           json=body, **kwargs)
 
+    @warn_for_interface_deprecation
     def unshare_shiny_dashboard(self, shiny_dashboard_id: str, organization_ids: List[str],
                                 **kwargs) -> Response:
         """
@@ -213,6 +215,7 @@ class ShinyDashboardAPI(ResourceAPI):
         return self.patch(f"/api/shiny-dashboards/{shiny_dashboard_id}/sharing",
                           json=body, **kwargs)
 
+    @warn_for_interface_deprecation
     def connect_shiny_dashboard(self, log_id, shiny_dashboard_id, **kwargs) \
             -> Response:
         """

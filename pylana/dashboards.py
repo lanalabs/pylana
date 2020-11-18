@@ -6,6 +6,7 @@ from typing import List
 
 from requests import Response
 
+from pylana.decorators import warn_for_interface_deprecation
 from pylana.resources import ResourceAPI
 
 
@@ -173,6 +174,7 @@ class DashboardAPI(ResourceAPI):
                                      **kwargs)
 
     # TODO consider sharing by names
+    @warn_for_interface_deprecation
     def share_dashboard(self, dashboard_id: str, organization_ids: List[str],
                         **kwargs) -> Response:
         """
@@ -188,12 +190,12 @@ class DashboardAPI(ResourceAPI):
         Returns:
             The requests response of the lana api call.
         """
-        body = {
-            "shareWithOrganizations": organization_ids
-        }
-        return self.patch(f"/api/v2/dashboards/{dashboard_id}/sharing", json=body,
-                          **kwargs)
+        return self.put(
+            f"/api/v2/dashboards/{dashboard_id}/sharing",
+            json={"shareWithOrganizations": organization_ids},
+            **kwargs)
 
+    @warn_for_interface_deprecation
     def unshare_dashboard(self, dashboard_id: str, organization_ids: List[str],
                           **kwargs) -> Response:
         """
@@ -211,11 +213,10 @@ class DashboardAPI(ResourceAPI):
         Returns:
             The requests response of the lana api call.
         """
-        body = {
-            "unshareWithOrganizations": organization_ids
-        }
-        return self.patch(f"/api/v2/dashboards/{dashboard_id}/sharing", json=body,
-                          **kwargs)
+        return self.put(
+            f"/api/v2/dashboards/{dashboard_id}/sharing",
+            json={"unshareWithOrganizations": organization_ids},
+            **kwargs)
 
     def connect_dashboard(self, log_id, dashboard_id, **kwargs) \
             -> Response:

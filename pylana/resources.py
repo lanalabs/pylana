@@ -11,6 +11,29 @@ from pylana.api import API
 from pylana.decorators import expect_json
 
 
+def extract_resource_id(resource):
+    """
+    Extract resource id.
+
+    We currently have two ways of naming resource ids, "id" and "pageId". We
+    only have "pageId" in case "id" is missing.
+    """
+    return resource.get('id') or resource.get('pageId')
+
+
+def filter_resource_ids(resources: List[dict], contains: str) -> List[str]:
+    """
+    Filter a list of resources by matching a regex against their names.
+    """
+    return [
+        extract_resource_id(resource)
+        for resource in resources
+        if re.compile(contains).search(
+            resource.get('name') or resource.get('title')
+        )
+    ]
+
+
 class ResourceAPI(API):
 
     @expect_json
@@ -42,14 +65,9 @@ class ResourceAPI(API):
         Returns:
             a list of strings representing resource ids
         """
-        resources = self.list_resources(kind, **kwargs)
-        rc = re.compile(contains)
-        
-        return [
-            resource.get('id') or resource.get('pageId')
-            for resource in resources if rc.search(resource.get('name') 
-            or resource.get('title'))
-        ]
+        return filter_resource_ids(
+            self.list_resources(kind, **kwargs),
+            contains)
 
     def get_resource_id(self, kind: str, contains: str, **kwargs) -> str:
         """
@@ -66,7 +84,6 @@ class ResourceAPI(API):
                 f'Found {len(resource_ids)} resources with the pattern {contains}')
 
         return resource_id
-
 
     @expect_json
     def describe_resource(self, kind: str, contains: str = None, resource_id: str = None, **kwargs) -> dict:
@@ -104,10 +121,22 @@ class ResourceAPI(API):
     def connect_resources(self, dct, **kwargs) -> Response:
         return self.post('/api/v2/resource-connections', json=dct, **kwargs)
 
-    def connect_model(self, log_id, model_id, **kwargs):
-        dct = {'log_id': log_id, 'model_id': model_id}
-        return self.connect_resources(dct, **kwargs)
-
     def connect_working_schedule(self, log_id, working_schedule_id, **kwargs):
         dct = {'log_id': log_id, 'working_schedule_id': working_schedule_id}
         return self.connect_resources(dct, **kwargs)
+
+    def share_resource(self, kind: str, resource_id: str, **kwargs):
+        return self.put(
+            f"/api/v2/{kind}/{resource_id}/sharing",
+            json={"shareWithOrganizations": [self.user.organization_id],
+                  "unshareWithOrganizations": []},
+            **kwargs
+            )
+
+    def unshare_resource(self, kind: str, resource_id: str, **kwargs):
+        return self.put(
+            f"/api/v2/{kind}/{resource_id}/sharing",
+            json={"shareWithOrganizations": [],
+                  "unshareWithOrganizations": [self.user.organization_id]},
+            **kwargs
+            )

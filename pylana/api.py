@@ -104,6 +104,10 @@ class API:
         return self._request('GET', route, additional_headers, **kwargs)
 
     @handle_response
+    def put(self, route, additional_headers=None, **kwargs):
+        return self._request('PUT', route, additional_headers, **kwargs)
+
+    @handle_response
     def post(self, route, additional_headers=None, **kwargs):
         return self._request('POST', route, additional_headers, **kwargs)
 

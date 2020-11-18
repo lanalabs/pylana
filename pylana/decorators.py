@@ -5,6 +5,7 @@ decorators for handling api request responses
 import functools
 import json
 from typing import List
+import warnings
 
 import requests
 
@@ -32,4 +33,16 @@ def handle_response(method):
         except requests.exceptions.HTTPError as e:
             print(e)
         return resp
+    return wrapper
+
+
+warnings.simplefilter("always", DeprecationWarning)
+
+def warn_for_interface_deprecation(method):
+    @functools.wraps(method)
+    def wrapper(*args, **kwargs):
+        msg = f"The interface of the method {method.__name__} will be " \
+              f"changed soon to a more standardised form."
+        warnings.warn(msg, DeprecationWarning)
+        return method(*args, **kwargs)
     return wrapper
